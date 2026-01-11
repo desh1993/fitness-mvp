@@ -6,7 +6,7 @@ services:
             - --providers.docker.exposedbydefault=false
             - --entrypoints.web.address=:80
         ports:
-            - "80:80"
+            - '80:80'
         networks: [sail]
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -21,8 +21,8 @@ services:
             - 'host.docker.internal:host-gateway'
         # Traefik handles 80 for the app; keep Vite direct
         ports:
-            - "${VITE_PORT:-5173}:5173"
-            - "51204:51204" # 👈 add this http://leavemanagementsystem.localhost:51204/__vitest__/#/
+            - '${VITE_PORT:-5173}:5173'
+            - '51204:51204' # 👈 add this http://leavemanagementsystem.localhost:51204/__vitest__/#/
         environment:
             WWWUSER: '${WWWUSER}'
             LARAVEL_SAIL: 1
@@ -37,10 +37,10 @@ services:
             - mysql
             - redis
         labels:
-            - "traefik.enable=true"
-            - "traefik.http.routers.laravel.rule=Host(`${APP_HOST:-fitness-mvp.localhost}`) || Host(`fitness-mvp.test`)"
-            - "traefik.http.routers.laravel.entrypoints=web"
-            - "traefik.http.services.laravel.loadbalancer.server.port=80"
+            - 'traefik.enable=true'
+            - 'traefik.http.routers.laravel.rule=Host(`${APP_HOST:-fitness-mvp.localhost}`) || Host(`fitness-mvp.test`)'
+            - 'traefik.http.routers.laravel.entrypoints=web'
+            - 'traefik.http.services.laravel.loadbalancer.server.port=80'
     mysql:
         image: 'mysql:8.4'
         ports:
@@ -96,10 +96,10 @@ services:
         depends_on:
             - mysql
         labels:
-            - "traefik.enable=true"
-            - "traefik.http.routers.phpmyadmin.rule=Host(`db.${APP_HOST:-fitness-mvp.localhost}`)"
-            - "traefik.http.routers.phpmyadmin.entrypoints=web"
-            - "traefik.http.services.phpmyadmin.loadbalancer.server.port=80"
+            - 'traefik.enable=true'
+            - 'traefik.http.routers.phpmyadmin.rule=Host(`db.${APP_HOST:-fitness-mvp.localhost}`)'
+            - 'traefik.http.routers.phpmyadmin.entrypoints=web'
+            - 'traefik.http.services.phpmyadmin.loadbalancer.server.port=80'
 networks:
     sail:
         driver: bridge

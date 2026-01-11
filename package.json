@@ -36,5 +36,13 @@
         "tailwindcss": "^3.2.1",
         "typescript": "^5.0.2",
         "vite": "^7.0.7"
+    },
+    "dependencies": {
+        "@hookform/resolvers": "^5.2.2",
+        "@tanstack/react-table": "^8.20.5",
+        "lucide-react": "^0.562.0",
+        "react-hook-form": "^7.71.0",
+        "react-hot-toast": "^2.6.0",
+        "zod": "^4.3.5"
     }
 }
