@@ -1,5 +1,7 @@
 import AddMemberModal from '@/Components/AddMemberModal';
 import Button from '@/Components/Button';
+import DangerButton from '@/Components/DangerButton';
+import Modal from '@/Components/Modal';
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { PageProps as AppPageProps } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
@@ -10,8 +12,9 @@ import {
     getPaginationRowModel,
     useReactTable,
 } from '@tanstack/react-table';
-import { Plus, Search, Trash2 } from 'lucide-react';
+import { Edit, Plus, Search, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
+import toast from 'react-hot-toast';
 
 interface Member {
     id: number;
@@ -51,6 +54,8 @@ export default function Index() {
     const [search, setSearch] = useState(filters.search || '');
     const [status, setStatus] = useState(filters.status || '');
     const [showAddModal, setShowAddModal] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [memberToDelete, setMemberToDelete] = useState<Member | null>(null);
 
     const columns = useMemo(
         () => [
@@ -148,15 +153,18 @@ export default function Index() {
                         <div className="flex items-center gap-2">
                             <button
                                 onClick={() => {
-                                    if (
-                                        confirm(
-                                            'Are you sure you want to delete this member?',
-                                        )
-                                    ) {
-                                        router.delete(
-                                            route('members.destroy', member.id),
-                                        );
-                                    }
+                                    router.visit(
+                                        route('members.show', member.id),
+                                    );
+                                }}
+                                className="rounded-md p-2 text-indigo-400 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-900/20 dark:hover:text-indigo-400"
+                            >
+                                <Edit className="h-4 w-4" />
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setMemberToDelete(member);
+                                    setShowDeleteModal(true);
                                 }}
                                 className="rounded-md p-2 text-red-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400"
                             >
@@ -238,6 +246,26 @@ export default function Index() {
                 replace: true,
             },
         );
+    };
+
+    const handleDeleteModalClose = () => {
+        setShowDeleteModal(false);
+        setMemberToDelete(null);
+    };
+
+    const handleDeleteConfirm = () => {
+        if (!memberToDelete) return;
+
+        router.delete(route('members.destroy', memberToDelete.id), {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success('Member deleted successfully');
+                handleDeleteModalClose();
+            },
+            onError: () => {
+                toast.error('Failed to delete member');
+            },
+        });
     };
 
     return (
@@ -393,25 +421,30 @@ export default function Index() {
                                                 </p>
                                             </div>
                                         </div>
-                                        <button
-                                            onClick={() => {
-                                                if (
-                                                    confirm(
-                                                        'Are you sure you want to delete this member?',
-                                                    )
-                                                ) {
-                                                    router.delete(
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                onClick={() => {
+                                                    router.visit(
                                                         route(
-                                                            'members.destroy',
+                                                            'members.show',
                                                             member.id,
                                                         ),
                                                     );
-                                                }
-                                            }}
-                                            className="rounded-md p-2 text-red-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400"
-                                        >
-                                            <Trash2 className="h-4 w-4" />
-                                        </button>
+                                                }}
+                                                className="rounded-md p-2 text-indigo-400 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-900/20 dark:hover:text-indigo-400"
+                                            >
+                                                <Edit className="h-4 w-4" />
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    setMemberToDelete(member);
+                                                    setShowDeleteModal(true);
+                                                }}
+                                                className="rounded-md p-2 text-red-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400"
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </button>
+                                        </div>
                                     </div>
 
                                     <div className="mt-4 space-y-2 border-t border-gray-200 pt-4 dark:border-gray-700">
@@ -584,6 +617,37 @@ export default function Index() {
                 show={showAddModal}
                 onClose={() => setShowAddModal(false)}
             />
+
+            <Modal
+                show={showDeleteModal}
+                onClose={handleDeleteModalClose}
+                maxWidth="md"
+            >
+                <div className="p-6">
+                    <h2 className="mb-4 text-lg font-medium text-gray-900 dark:text-gray-100">
+                        Delete Member
+                    </h2>
+                    <p className="mb-6 text-sm text-gray-600 dark:text-gray-400">
+                        Are you sure you want to delete{' '}
+                        <span className="font-semibold text-gray-900 dark:text-white">
+                            {memberToDelete?.name}
+                        </span>
+                        ? This action cannot be undone.
+                    </p>
+                    <div className="flex justify-end gap-3">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={handleDeleteModalClose}
+                        >
+                            Cancel
+                        </Button>
+                        <DangerButton onClick={handleDeleteConfirm}>
+                            Delete
+                        </DangerButton>
+                    </div>
+                </div>
+            </Modal>
         </DashboardLayout>
     );
 }

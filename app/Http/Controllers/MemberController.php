@@ -60,6 +60,16 @@ class MemberController extends Controller
     }
 
     /**
+     * Display the specified member.
+     */
+    public function show(Member $member): Response
+    {
+        return Inertia::render('Members/Show', [
+            'member' => $member,
+        ]);
+    }
+
+    /**
      * Store a newly created member.
      */
     public function store(StoreMemberRequest $request): RedirectResponse
@@ -76,7 +86,7 @@ class MemberController extends Controller
     {
         $this->memberService->update($member, $request->validated());
 
-        return Redirect::back()->with('success', 'Member updated successfully.');
+        return Redirect::route('members.index')->with('success', 'Member updated successfully.');
     }
 
     /**
@@ -96,6 +106,7 @@ class MemberController extends Controller
     {
         $field = request()->input('field');
         $value = request()->input('value');
+        $excludeId = request()->input('exclude_id');
 
         if (!in_array($field, ['name', 'email', 'phone'])) {
             return response()->json(['exists' => false], 400);
@@ -114,8 +125,12 @@ class MemberController extends Controller
                 ]);
             }
 
-            // Check if phone exists in database
-            $exists = Member::where('phone', $value)->exists();
+            // Check if phone exists in database, excluding current member if editing
+            $query = Member::where('phone', $value);
+            if ($excludeId) {
+                $query->where('id', '!=', $excludeId);
+            }
+            $exists = $query->exists();
 
             return response()->json([
                 'valid' => true,
@@ -123,8 +138,12 @@ class MemberController extends Controller
             ]);
         }
 
-        // For name and email, maintain backward compatibility
-        $exists = Member::where($field, $value)->exists();
+        // For name and email, exclude current member if editing
+        $query = Member::where($field, $value);
+        if ($excludeId) {
+            $query->where('id', '!=', $excludeId);
+        }
+        $exists = $query->exists();
 
         return response()->json(['exists' => $exists]);
     }
