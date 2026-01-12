@@ -26,6 +26,10 @@ Route::middleware('auth')->group(function () {
     
     Route::resource('members', MemberController::class);
     Route::post('/api/members/check', [MemberController::class, 'checkExists'])->name('members.check');
+    
+    Route::get('/test', function () {
+        return Inertia::render('Test');
+    })->name('test');
 });
 
 require __DIR__.'/auth.php';

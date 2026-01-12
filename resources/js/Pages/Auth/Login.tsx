@@ -3,7 +3,7 @@ import InputError from '@/Components/InputError';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { Dumbbell, Eye, EyeOff } from 'lucide-react';
 import { FormEventHandler, useState } from 'react';
-
+// axios.defaults.withCredentials = true;
 export default function Login({
     status,
     canResetPassword,
@@ -13,8 +13,8 @@ export default function Login({
 }) {
     const [showPassword, setShowPassword] = useState(false);
     const { data, setData, post, processing, errors, reset } = useForm({
-        email: '',
-        password: '',
+        email: 'admin@fithub.com',
+        password: 'password',
         remember: false as boolean,
     });
 

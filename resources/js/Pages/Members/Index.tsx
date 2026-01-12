@@ -50,7 +50,7 @@ export default function Index() {
     const { members, filters } = usePage<PageProps>().props;
     const [search, setSearch] = useState(filters.search || '');
     const [status, setStatus] = useState(filters.status || '');
-    const [showAddModal, setShowAddModal] = useState(true);
+    const [showAddModal, setShowAddModal] = useState(false);
 
     const columns = useMemo(
         () => [
