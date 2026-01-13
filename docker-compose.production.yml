@@ -1,6 +1,6 @@
 services:
   traefik:
-    image: traefik:v3.0.4
+    image: traefik:v3.0
     container_name: traefik
     environment:
       - DOCKER_API_VERSION=1.52
