@@ -1,19 +1,18 @@
 services:
   traefik:
-    image: traefik:v3.0
-    container_name: traefik
-    environment:
-      - DOCKER_API_VERSION=1.52
+    image: traefik:v2.11
     command:
       - --providers.docker=true
-      - --providers.docker.endpoint=unix:///var/run/docker.sock
       - --providers.docker.exposedbydefault=false
+
       - --entrypoints.web.address=:80
       - --entrypoints.websecure.address=:443
+
       - --certificatesresolvers.le.acme.httpchallenge=true
       - --certificatesresolvers.le.acme.httpchallenge.entrypoint=web
       - --certificatesresolvers.le.acme.email=desh1993@protonmail.com
       - --certificatesresolvers.le.acme.storage=/letsencrypt/acme.json
+
       - --log.level=INFO
     ports:
       - '80:80'
@@ -21,7 +20,6 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./letsencrypt:/letsencrypt
-    restart: unless-stopped
 
   app:
     build:
