@@ -12,8 +12,6 @@ services:
       - --certificatesresolvers.le.acme.httpchallenge.entrypoint=web
       - --certificatesresolvers.le.acme.email=desh1993@protonmail.com
       - --certificatesresolvers.le.acme.storage=/letsencrypt/acme.json
-
-      - --log.level=INFO
     ports:
       - '80:80'
       - '443:443'
