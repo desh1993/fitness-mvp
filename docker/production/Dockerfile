@@ -1,7 +1,9 @@
 # syntax=docker/dockerfile:1.7
 
 ########## Stage 1: PHP vendor (cached)
-FROM composer:2.7 AS vendor
+FROM php:8.4-cli-alpine AS vendor
+RUN apk add --no-cache unzip
+COPY --from=composer:2.7 /usr/bin/composer /usr/bin/composer
 WORKDIR /app
 COPY composer.json composer.lock ./
 RUN --mount=type=cache,target=/tmp/composer \
@@ -36,11 +38,12 @@ COPY --from=frontend /app/public/build ./public/build
 
 # Ensure views dir exists and fix ownership/permissions
 USER root
-# RUN mkdir -p resources/views \
-#  && mkdir -p storage/logs storage/framework/{cache,sessions,views} bootstrap/cache \
-#  && chown -R www-data:www-data resources storage bootstrap/cache vendor public \
-#  && chmod -R 775 storage bootstrap/cache \
-#  && chmod -R 755 vendor public
+
+# 🔴 IMPORTANT: clear Laravel caches that may reference dev-only packages (like Pail)
+RUN rm -f bootstrap/cache/packages.php \
+       bootstrap/cache/services.php \
+       bootstrap/cache/config.php || true
+       
 RUN mkdir -p resources/views \
  && mkdir -p storage/logs \
     storage/framework/cache \
@@ -51,8 +54,23 @@ RUN mkdir -p resources/views \
  && chmod -R 775 storage bootstrap/cache \
  && chmod -R 755 vendor public
 
+# Create a script to clear bootstrap cache at runtime (before Laravel automations run)
+# This runs before the serversideup entrypoint executes Laravel automations
+# The script clears cached package discovery files that may reference dev-only packages
+RUN echo '#!/bin/sh' > /usr/local/bin/clear-laravel-cache.sh && \
+    echo 'echo "Clearing Laravel bootstrap cache to remove dev package references..."' >> /usr/local/bin/clear-laravel-cache.sh && \
+    echo 'rm -f /var/www/html/bootstrap/cache/packages.php 2>/dev/null || true' >> /usr/local/bin/clear-laravel-cache.sh && \
+    echo 'rm -f /var/www/html/bootstrap/cache/services.php 2>/dev/null || true' >> /usr/local/bin/clear-laravel-cache.sh && \
+    echo 'rm -f /var/www/html/bootstrap/cache/config.php 2>/dev/null || true' >> /usr/local/bin/clear-laravel-cache.sh && \
+    echo 'echo "Bootstrap cache cleared successfully"' >> /usr/local/bin/clear-laravel-cache.sh && \
+    chmod +x /usr/local/bin/clear-laravel-cache.sh
+
+# Install composer in runtime stage (needed for package discovery)
+COPY --from=composer:2.7 /usr/bin/composer /usr/bin/composer
+
 # Rebuild autoload AFTER app code is present (runs package:discover, etc.)
-#RUN composer dump-autoload -o
+# This ensures autoload files don't reference dev dependencies
+RUN composer dump-autoload -o --no-dev || true
 
 USER www-data
 EXPOSE 8080
